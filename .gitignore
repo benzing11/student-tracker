@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+database.db
+database.db-wal
+database.db-shm
+database_backup_current.db
+START_ELITE.bat
+.vscode/

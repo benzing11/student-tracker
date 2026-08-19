@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Elite Batch — Student Progress Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<section id="loginPage" class="page login-page">
+ <div class="login-shell">
+  <div class="brand-line"><span class="brand-mark">E</span><b>Elite Batch</b></div><button class="theme-toggle" onclick="toggleTheme()">☼</button>
+  <div class="portal-choice"><p class="eyebrow">CHOOSE PORTAL</p><h1>Sign in to continue</h1>
+   <div class="portal-cards">
+    <button class="portal-card active" onclick="choosePortal('student')"><span class="portal-icon">S</span><span><b>Student Portal</b><small>Plan. Learn. Track. Improve.</small></span></button>
+    <button class="portal-card" onclick="choosePortal('admin')"><span class="portal-icon">A</span><span><b>Admin Portal</b><small>Control verified progress, support and batch activity.</small></span></button>
+   </div>
+  </div>
+  <div class="login-box"><p id="loginEyebrow" class="eyebrow">STUDENT PORTAL</p><h2>Secure sign in</h2><p class="muted">Use your registered account.</p>
+   <label>Email</label><input id="loginEmail" type="email" autocomplete="username" placeholder="your college email">
+   <label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password">
+   <button class="primary-btn full" onclick="signIn()">Sign in ↗</button>
+   <p id="studentSignup" class="signup">New student? <button class="link-btn" onclick="showCreateAccount()">Create account</button></p>
+  </div>
+ </div>
+</section>
+
+<section id="createAccountPage" class="page auth-page hidden">
+ <div class="auth-card"><div class="brand-mark small">E</div><p class="eyebrow">ELITE BATCH</p><h1>Create Student Account</h1><p class="muted">Enter your verified college details. Keep your password private.</p>
+  <div class="two-col">
+   <div><label>College Email</label><input id="signupEmail" type="email" placeholder="yourname@college.edu"></div>
+   <div><label>Password</label><input id="signupPassword" type="password" placeholder="Minimum 8 characters"></div>
+   <div><label>Confirm Password</label><input id="signupConfirmPassword" type="password" placeholder="Re-enter password"></div>
+   <div><label>Register No</label><input id="signupRegisterNo" inputmode="numeric" placeholder="e.g. 95072512031"></div>
+   <div><label>Student Name</label><input id="signupName" placeholder="e.g. Your Full Name"></div>
+   <div><label>Program</label><select id="signupProgram"><option value="">Select program</option><option>B.E.</option><option>B.Tech</option></select></div>
+   <div><label>Department</label><select id="signupDepartment"><option value="">Select department</option><option>CSE</option><option>ECE</option><option>EEE</option><option>MECH</option><option>CIVIL</option><option>IT</option><option>AIDS</option><option>CSBS</option><option>AIML</option></select></div>
+   <div><label>Year</label><select id="signupYear"><option value="">Select year</option><option>I Year</option><option>II Year</option><option>III Year</option><option>IV Year</option></select></div>
+   <div><label>Batch</label><input id="signupBatch" placeholder="e.g. 2025-2029"></div>
+   <div><label>Mobile No</label><input id="signupMobile" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"></div>
+   <div class="wide-note"><span>🔐</span> Academic corrections, password help and verified PS progress are handled through Admin Help Desk.</div>
+  </div>
+  <button class="primary-btn full" onclick="createAccount()">Create account ↗</button><p class="signup">Already registered? <button class="link-btn" onclick="backToLogin()">Sign in</button></p>
+ </div>
+</section>
+
+<section id="studentPage" class="page app-page hidden">
+<header class="topbar"><div class="brand-inline"><span class="brand-mark small">E</span><b>Elite Batch</b></div><div class="top-actions"><span id="liveClock" class="mono"></span><button class="icon-btn" onclick="toggleTheme()">☼</button><button class="profile-chip" onclick="openProfile()">A <span>Profile</span></button><button class="logout-btn" onclick="logout()">Logout</button></div></header>
+<main class="container">
+ <div class="welcome"><div><p class="eyebrow">STUDENT PORTAL</p><h1>Good to see you,<span id="welcomeName">Student</span></h1><p class="muted">Build consistency. Your verified progress moves with you.</p></div><div class="today-pill"><span id="todayDate"></span><strong id="todayTime"></strong></div></div>
+
+ <section class="card hero-progress"><div><p class="eyebrow">TODAY / MOMENTUM</p><h2 id="motivationTitle">Small progress. Every day.</h2><p id="motivationText" class="muted">Complete today's work and keep your momentum visible.</p></div><div class="donut-wrap"><div id="progressDonut" class="donut"><span id="donutValue">0%</span></div></div></section>
+
+ <section class="grid-2">
+  <div class="card"><div class="section-head"><div><p class="eyebrow">01 / DAILY PLAN</p><h2>Elite's Today Plan</h2></div><span id="plannerDate" class="auto-date"></span></div><div id="plannerGrid" class="planner-grid"></div><button id="plannerButton" class="primary-btn full" onclick="savePlanner()">Submit today's plan ↗</button></div>
+  <div class="card"><div class="section-head"><div><p class="eyebrow">02 / PS PORTAL</p><h2>Daily Progress</h2></div><span id="psDate" class="auto-date"></span></div>
+   <div class="form-stack"><label>FXEC Course</label><select id="psCourse" onchange="updatePSLevels()"></select><label>Level</label><select id="psLevel"><option value="">Select course first</option></select><label>Status</label><select id="psStatus"><option value="Completed">✅ Completed</option><option value="Not Completed">❌ Not Completed</option></select>
+   <div class="two-col"><div><label>Attempt No.</label><input id="psAttempt" type="number" min="1" placeholder="1"></div><div><label>Score</label><input id="psScore" type="number" min="0" max="100" placeholder="0"></div></div></div>
+   <button class="primary-btn full" onclick="savePS()">Save today's PS report ↗</button><p class="micro-note">Daily reports are private to your account and marked <b>Pending</b> until Admin verification.</p>
+  </div>
+ </section>
+
+ <section class="card verification-card"><div class="section-head"><div><p class="eyebrow">03 / PREVIOUS PROGRESS</p><h2>Already completed PS levels?</h2></div><span class="muted">Admin verified</span></div>
+  <p class="muted">If you completed FXEC PS levels before joining this tracker, submit them here. They will affect your official progress only after Admin approval.</p>
+  <div class="two-col"><div><label>Course</label><select id="verifyCourse" onchange="updateVerifyLevels()"></select></div><div><label>Completed Level</label><select id="verifyLevel"></select></div><div><label>Proof / explanation</label><input id="verifyNote" placeholder="Example: PS Portal screenshot / official completion record"></div><div><label>Proof link (optional)</label><input id="verifyLink" placeholder="Drive link or other approved reference"></div></div>
+  <button class="primary-btn" onclick="submitVerification()">Send for Admin verification ↗</button><div id="verificationStatus" class="request-list"></div>
+ </section>
+
+ <section class="card"><div class="section-head"><div><p class="eyebrow">04 / HISTORY</p><h2>My Progress Archive</h2></div><div class="tabs"><button class="tab active" onclick="switchHistory('planner',this)">Elite Plans</button><button class="tab" onclick="switchHistory('ps',this)">PS Progress</button></div></div><div id="historyArea"></div></section>
+
+ <section class="card"><div class="section-head"><div><p class="eyebrow">05 / PROGRESS SIGNAL</p><h2>Skill Matrix</h2></div><span class="muted">Verified completion only</span></div><div id="skillMatrix" class="skill-matrix"></div></section>
+ <section class="card"><div class="section-head"><div><p class="eyebrow">06 / PERFORMANCE</p><h2>My Performance</h2></div><span class="muted">Live verified analytics</span></div><div id="studentStats" class="advanced-stats"></div></section>
+ <section class="card"><div class="section-head"><div><p class="eyebrow">07 / FXEC LEVEL PROGRESS</p><h2>Course Matrix</h2></div><span class="muted">Highest progress first</span></div><div id="advancedSkillMatrix" class="advanced-matrix"></div></section>
+ <section class="card leaderboard-card"><div class="section-head"><div><p class="eyebrow">08 / LEADERBOARD</p><h2>Elite Leaderboard</h2></div><span class="muted">Verified batch performance</span></div><div id="leaderboard"></div></section>
+ <section class="card support-card"><div class="section-head"><div><p class="eyebrow">09 / HELP DESK</p><h2>Need help?</h2></div><span class="muted">Private request to Admin</span></div>
+  <div class="two-col"><div><label>Issue</label><select id="supportCategory"><option>Forgot password</option><option>Change name</option><option>Profile correction</option><option>Progress issue</option><option>Planner issue</option><option>PS Portal issue</option><option>Other</option></select></div><div><label>Message</label><input id="supportMessage" placeholder="Describe the issue briefly"></div></div><button class="primary-btn" onclick="sendSupport()">Send to Admin ↗</button><div id="mySupport" class="support-list"></div>
+ </section>
+ <footer class="site-footer">Elite Student Progress Tracker · Designed for self-learning workflow at Francis Xavier Engineering College (FXEC) · Student project / prototype</footer>
+</main></section>
+
+<section id="adminPage" class="page app-page hidden">
+<header class="topbar"><div class="brand-inline"><span class="brand-mark small">E</span><b>Elite Batch / Admin</b></div><div class="top-actions"><span id="adminClock" class="mono"></span><button class="icon-btn" onclick="toggleTheme()">☼</button><button class="logout-btn" onclick="logout()">Logout</button></div></header>
+<main class="container">
+ <div class="welcome"><div><p class="eyebrow">COMMAND CENTER</p><h1>Batch Control</h1><p class="muted">One place to verify progress, resolve student issues and protect academic data.</p></div></div>
+ <div id="realAdminStats" class="admin-stats"></div>
+ <section class="admin-tabs"><button class="admin-tab active" onclick="adminSection('overview',this)">Overview</button><button class="admin-tab" onclick="adminSection('verify',this)">Verification</button><button class="admin-tab" onclick="adminSection('students',this)">Students</button><button class="admin-tab" onclick="adminSection('support',this)">Support</button><button class="admin-tab" onclick="adminSection('audit',this)">Audit</button></section>
+
+ <div id="adminOverview" class="admin-section"><section class="card"><div class="section-head"><div><p class="eyebrow">STUDENT LOOKUP</p><h2>Protected student record</h2></div></div><div class="search-row"><input id="adminSearch" inputmode="numeric" placeholder="Register number e.g. 95072512031" onkeydown="if(event.key==='Enter')adminSearch()"><button class="primary-btn" onclick="adminSearch()">Search</button></div><div id="adminResult" class="admin-result empty-state">Only Admin can access detailed student records.</div></section>
+  <div class="grid-2"><section class="card"><div class="section-head"><div><p class="eyebrow">VERIFIED COURSE ACTIVITY</p><h2>Active completed courses</h2></div></div><div id="adminCourses"></div></section><section class="card"><div class="section-head"><div><p class="eyebrow">BATCH RANKING</p><h2>Elite Leaderboard</h2></div></div><div id="adminLeaderboard"></div></section></div></div>
+
+ <div id="adminVerify" class="admin-section hidden">
+  <section class="card"><div class="section-head"><div><p class="eyebrow">VERIFICATION CENTER · 01</p><h2>Previous PS completion requests</h2></div><span class="muted">Approve only supported records</span></div><div id="adminVerification"></div></section>
+  <section class="card"><div class="section-head"><div><p class="eyebrow">VERIFICATION CENTER · 02</p><h2>Daily PS reports waiting for review</h2></div><span class="muted">Only verified reports affect official progress</span></div><div id="adminDailyVerification"></div></section>
+ </div>
+
+ <div id="adminStudents" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">STUDENT MANAGEMENT</p><h2>All students</h2></div></div><div class="search-row"><input id="studentDirectorySearch" placeholder="Search name, register number, email or department" oninput="loadStudentDirectory()"><button class="primary-btn" onclick="loadStudentDirectory()">Refresh</button></div><div id="studentDirectory"></div></section></div>
+
+ <div id="adminSupportSection" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">SUPPORT DESK</p><h2>Student issues</h2></div></div><div id="adminSupport"></div></section></div>
+
+ <div id="adminAudit" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">AUDIT TRAIL</p><h2>Administrative activity</h2></div><span class="muted">Recent 100 actions</span></div><div id="auditLog"></div></section></div>
+ <footer class="site-footer">Admin control is restricted to verified operational tasks. Do not share student records outside approved college workflows.</footer>
+</main></section>
+
+<div id="profileModal" class="modal hidden"><div class="modal-panel"><div class="modal-head"><div><p class="eyebrow">STUDENT PROFILE</p><h2 id="profileName">Student</h2></div><button class="icon-btn" onclick="closeProfile()">×</button></div><div id="profileStats" class="profile-stats"></div>
+ <div class="profile-details"><div><span>Register No</span><b id="profileRegister">—</b></div><div><span>Student Name</span><b id="profileStudentName">—</b></div><div><span>Program</span><b id="profileProgram">—</b></div><div><span>Department</span><b id="profileDepartment">—</b></div><div><span>Year</span><b id="profileYear">—</b></div><div><span>Batch</span><b id="profileBatch">—</b></div><div><span>Mobile</span><b id="profileMobile">—</b></div><div><span>Email</span><b id="profileEmail">—</b></div></div>
+ <div class="profile-section"><p class="eyebrow">ELITE PLANNER DATA</p><div id="profilePlanner"></div></div><div class="profile-section"><p class="eyebrow">PS PORTAL DATA</p><div id="profilePS"></div></div>
+ </div></div>
+<script src="{{ url_for('static',filename='app.js') }}"></script>
+</body></html>
