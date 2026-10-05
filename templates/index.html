@@ -22,8 +22,10 @@
   <div class="login-box"><p id="loginEyebrow" class="eyebrow">STUDENT PORTAL</p><h2>Secure sign in</h2><p class="muted">Use your registered account.</p>
    <label>Email</label><input id="loginEmail" type="email" autocomplete="username" placeholder="your college email">
    <label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password">
-   <button class="primary-btn full" onclick="signIn()">Sign in ↗</button>
-   <p id="studentSignup" class="signup">New student? <button class="link-btn" onclick="showCreateAccount()">Create account</button></p>
+   <label class="remember-row"><input type="checkbox" id="loginRemember" checked><span>Remember me on this device</span></label>
+    <button class="primary-btn full" onclick="signIn()">Sign in ↗</button>
+    <button id="devSkipBtn" class="ghost-btn full" style="display:none;margin-top:8px" onclick="skipSignIn()">Skip sign in (dev, temp)</button>
+    <p id="studentSignup" class="signup">New student? <button class="link-btn" onclick="showCreateAccount()">Create account</button></p>
   </div>
  </div>
 </section>
@@ -50,32 +52,51 @@
 <section id="studentPage" class="page app-page hidden">
 <header class="topbar"><div class="brand-inline"><span class="brand-mark small">E</span><b>Elite Batch</b></div><div class="top-actions"><span id="liveClock" class="mono"></span><button class="icon-btn" onclick="toggleTheme()">☼</button><button class="profile-chip" onclick="openProfile()">A <span>Profile</span></button><button class="logout-btn" onclick="logout()">Logout</button></div></header>
 <main class="container">
- <div class="welcome"><div><p class="eyebrow">STUDENT PORTAL</p><h1>Good to see you,<span id="welcomeName">Student</span></h1><p class="muted">Build consistency. Your verified progress moves with you.</p></div><div class="today-pill"><span id="todayDate"></span><strong id="todayTime"></strong></div></div>
+ <div class="welcome"><div><p class="eyebrow">STUDENT PORTAL</p><h1><span id="welcomeName">Student</span></h1><p class="muted" id="welcomeTagline"></p></div><div class="today-pill"><span id="todayDate"></span><strong id="todayTime"></strong></div></div>
 
- <section class="card hero-progress"><div><p class="eyebrow">TODAY / MOMENTUM</p><h2 id="motivationTitle">Small progress. Every day.</h2><p id="motivationText" class="muted">Complete today's work and keep your momentum visible.</p></div><div class="donut-wrap"><div id="progressDonut" class="donut"><span id="donutValue">0%</span></div></div></section>
+ <div id="glanceStrip" class="glance-strip"></div>
 
- <section class="grid-2">
-  <div class="card"><div class="section-head"><div><p class="eyebrow">01 / DAILY PLAN</p><h2>Elite's Today Plan</h2></div><span id="plannerDate" class="auto-date"></span></div><div id="plannerGrid" class="planner-grid"></div><button id="plannerButton" class="primary-btn full" onclick="savePlanner()">Submit today's plan ↗</button></div>
-  <div class="card"><div class="section-head"><div><p class="eyebrow">02 / PS PORTAL</p><h2>Daily Progress</h2></div><span id="psDate" class="auto-date"></span></div>
-   <div class="form-stack"><label>FXEC Course</label><select id="psCourse" onchange="updatePSLevels()"></select><label>Level</label><select id="psLevel"><option value="">Select course first</option></select><label>Status</label><select id="psStatus"><option value="Completed">✅ Completed</option><option value="Not Completed">❌ Not Completed</option></select>
-   <div class="two-col"><div><label>Attempt No.</label><input id="psAttempt" type="number" min="1" placeholder="1"></div><div><label>Score</label><input id="psScore" type="number" min="0" max="100" placeholder="0"></div></div></div>
-   <button class="primary-btn full" onclick="savePS()">Save today's PS report ↗</button><p class="micro-note">Daily reports are private to your account and marked <b>Pending</b> until Admin verification.</p>
+ <div class="segmented student-switch"><button class="seg-btn active" onclick="studentView('tasks',this)">Tasks &amp; Planning</button><button class="seg-btn" onclick="studentView('ps',this)">PS Progress</button></div>
+
+ <div id="studentViewTasks" class="student-view">
+  <section class="card"><div class="section-head"><div><p class="eyebrow">01 / DAILY PLAN</p><h2>Today — execute</h2></div><div class="plan-tools"><span class="activity-pill">⚡ <b id="activityPoints">0</b> activity pts</span><span id="plannerDate" class="auto-date"></span></div></div><div id="todayPlan"></div>
+   <div class="plan-divider"></div>
+    <div class="section-head"><div><p class="eyebrow">PLAN TOMORROW</p><h2>Set tomorrow's plan</h2></div><span class="muted">Edit until 11:59pm</span></div><div id="plannerReady" class="plan-ready"></div><div id="plannerGrid" class="planner-grid"></div><button id="plannerButton" class="primary-btn full" onclick="savePlanner()">Save tomorrow's plan ↗</button><p class="micro-note" style="text-align:center;margin-top:10px;color:var(--muted)">Tip: specific beats vague — "Python L1 Q1–Q10" > "study Python"</p></section>
+
+  <div class="grid-main-side">
+   <section class="card"><div class="section-head"><div><p class="eyebrow">02 / MY TASKS</p><h2>Assigned tasks</h2></div><span class="muted">Verified completion awards points</span></div>
+    <div class="big-score"><div class="big-score-inner"><span>My task points</span><strong id="myTaskPoints">0</strong></div></div>
+    <div id="myTasks" class="task-list"></div></section>
+   <section class="card side"><div class="section-head"><div><p class="eyebrow">03 / LEADERBOARD</p><h2>Task points</h2></div><span class="muted">Top 10</span></div><div id="taskLeaderboard" class="task-leaderboard"></div></section>
   </div>
- </section>
+ </div>
 
- <section class="card verification-card"><div class="section-head"><div><p class="eyebrow">03 / PREVIOUS PROGRESS</p><h2>Already completed PS levels?</h2></div><span class="muted">Admin verified</span></div>
-  <p class="muted">If you completed FXEC PS levels before joining this tracker, submit them here. They will affect your official progress only after Admin approval.</p>
-  <div class="two-col"><div><label>Course</label><select id="verifyCourse" onchange="updateVerifyLevels()"></select></div><div><label>Completed Level</label><select id="verifyLevel"></select></div><div><label>Proof / explanation</label><input id="verifyNote" placeholder="Example: PS Portal screenshot / official completion record"></div><div><label>Proof link (optional)</label><input id="verifyLink" placeholder="Drive link or other approved reference"></div></div>
-  <button class="primary-btn" onclick="submitVerification()">Send for Admin verification ↗</button><div id="verificationStatus" class="request-list"></div>
- </section>
+ <div id="studentViewPS" class="student-view hidden">
+  <div class="grid-main-side ps-grid-even">
+   <section class="card"><div class="section-head"><div><p class="eyebrow">PS PORTAL · 3:10-4:10</p><h2>Slot booking</h2></div><span id="slotWindowInfo" class="muted"></span></div>
+    <div id="slotStatus"></div>
+    <div id="slotBookingForm" class="form-stack hidden"><label>Course</label><select id="slotCourse" onchange="fillLevels('slotLevel',this.value)"></select><label>Level</label><select id="slotLevel"><option value="">Select course first</option></select><button class="primary-btn full" onclick="bookSlot()">Book tomorrow's slot ↗</button></div>
+    <div id="slotReportWrap" class="hidden"><p class="muted" id="slotReportLabel"></p><div class="form-stack"><label>Status</label><select id="slotReportStatus"><option value="completed">✅ Completed</option><option value="not_completed">❌ Not completed</option><option value="not_attended">🚫 Did not attend</option></select><label>Score (0-100)</label><input id="slotReportScore" type="number" min="0" max="100" placeholder="0"><button class="primary-btn full" onclick="submitSlotReport()">Submit report ↗</button></div></div>
+    <div id="slotMyBookings" class="slot-bookings"></div>
+   </section>
+   <section class="card"><div class="section-head"><div><p class="eyebrow">PS PROGRESS · TOP 5</p><h2>Batch progress leaderboard</h2></div><button class="ghost-btn sm" id="psLeaderboardToggle" onclick="openPSLbModal()">Show full list</button></div><div id="psLeaderboard" class="task-leaderboard"></div></section>
+  </div>
 
- <section class="card"><div class="section-head"><div><p class="eyebrow">04 / HISTORY</p><h2>My Progress Archive</h2></div><div class="tabs"><button class="tab active" onclick="switchHistory('planner',this)">Elite Plans</button><button class="tab" onclick="switchHistory('ps',this)">PS Progress</button></div></div><div id="historyArea"></div></section>
+  <div class="grid-main-side ps-grid-even">
+   <section class="card"><div class="section-head"><div><p class="eyebrow">CLEARANCE HISTORY</p><h2>Levels cleared</h2></div><span class="muted">By date · pending shown as waiting</span></div><div id="clearanceHistory"></div></section>
+   <section class="card"><div class="section-head"><div><p class="eyebrow">REPORT PAST COMPLETION</p><h2>Add a level you completed before this dashboard</h2></div><span class="muted">Pending until Admin verifies</span></div>
+    <div class="two-col"><div><label>Course</label><select id="verifyCourse" onchange="fillLevels('verifyLevel',this.value)"></select></div><div><label>Level</label><select id="verifyLevel"><option value="">Select course first</option></select></div></div>
+    <button class="primary-btn full" onclick="submitVerification()">Submit for verification ↗</button></section>
+  </div>
 
- <section class="card"><div class="section-head"><div><p class="eyebrow">05 / PROGRESS SIGNAL</p><h2>Skill Matrix</h2></div><span class="muted">Verified completion only</span></div><div id="skillMatrix" class="skill-matrix"></div></section>
- <section class="card"><div class="section-head"><div><p class="eyebrow">06 / PERFORMANCE</p><h2>My Performance</h2></div><span class="muted">Live verified analytics</span></div><div id="studentStats" class="advanced-stats"></div></section>
- <section class="card"><div class="section-head"><div><p class="eyebrow">07 / FXEC LEVEL PROGRESS</p><h2>Course Matrix</h2></div><span class="muted">Highest progress first</span></div><div id="advancedSkillMatrix" class="advanced-matrix"></div></section>
- <section class="card leaderboard-card"><div class="section-head"><div><p class="eyebrow">08 / LEADERBOARD</p><h2>Elite Leaderboard</h2></div><span class="muted">Verified batch performance</span></div><div id="leaderboard"></div></section>
- <section class="card support-card"><div class="section-head"><div><p class="eyebrow">09 / HELP DESK</p><h2>Need help?</h2></div><span class="muted">Private request to Admin</span></div>
+  <section class="card"><div class="section-head"><div><p class="eyebrow">MONTHLY PS PROGRESS</p><h2 id="psGraphMonth"></h2></div><div class="month-nav"><button class="ghost-btn sm" onclick="psMonthStep(-1)">◀</button><button class="ghost-btn sm" onclick="psMonthStep(1)">▶</button></div></div>
+   <div id="psMonthlyGraph" class="ps-graph-wrap"></div>
+  </section>
+
+  <section class="card"><div class="section-head"><div><p class="eyebrow">FXEC LEVEL PROGRESS</p><h2>Course Matrix</h2></div><span class="muted">Highest progress first</span></div><button class="ghost-btn sm" id="matrixToggle" onclick="toggleMatrix()">Show all courses</button><div id="advancedSkillMatrix" class="advanced-matrix three-col" style="display:none"></div></section>
+ </div>
+
+ <section class="card support-card"><div class="section-head"><div><p class="eyebrow">HELP DESK</p><h2>Need help?</h2></div><span class="muted">Private request to Admin</span></div>
   <div class="two-col"><div><label>Issue</label><select id="supportCategory"><option>Forgot password</option><option>Change name</option><option>Profile correction</option><option>Progress issue</option><option>Planner issue</option><option>PS Portal issue</option><option>Other</option></select></div><div><label>Message</label><input id="supportMessage" placeholder="Describe the issue briefly"></div></div><button class="primary-btn" onclick="sendSupport()">Send to Admin ↗</button><div id="mySupport" class="support-list"></div>
  </section>
  <footer class="site-footer">Elite Student Progress Tracker · Designed for self-learning workflow at Francis Xavier Engineering College (FXEC) · Student project / prototype</footer>
@@ -86,27 +107,90 @@
 <main class="container">
  <div class="welcome"><div><p class="eyebrow">COMMAND CENTER</p><h1>Batch Control</h1><p class="muted">One place to verify progress, resolve student issues and protect academic data.</p></div></div>
  <div id="realAdminStats" class="admin-stats"></div>
- <section class="admin-tabs"><button class="admin-tab active" onclick="adminSection('overview',this)">Overview</button><button class="admin-tab" onclick="adminSection('verify',this)">Verification</button><button class="admin-tab" onclick="adminSection('students',this)">Students</button><button class="admin-tab" onclick="adminSection('support',this)">Support</button><button class="admin-tab" onclick="adminSection('audit',this)">Audit</button></section>
+ <section class="admin-tabs"><button class="admin-tab active" onclick="adminSection('tasks',this)">Tasks</button><button class="admin-tab" onclick="adminSection('daily',this)">Daily Activity</button><button class="admin-tab" onclick="adminSection('ps',this)">PS Portal</button><button class="admin-tab" onclick="adminSection('reports',this)">Reports</button><button class="admin-tab" onclick="adminSection('search',this)">Search</button><button class="admin-tab" onclick="adminSection('support',this)">Support</button></section>
 
- <div id="adminOverview" class="admin-section"><section class="card"><div class="section-head"><div><p class="eyebrow">STUDENT LOOKUP</p><h2>Protected student record</h2></div></div><div class="search-row"><input id="adminSearch" inputmode="numeric" placeholder="Register number e.g. 95072512031" onkeydown="if(event.key==='Enter')adminSearch()"><button class="primary-btn" onclick="adminSearch()">Search</button></div><div id="adminResult" class="admin-result empty-state">Only Admin can access detailed student records.</div></section>
-  <div class="grid-2"><section class="card"><div class="section-head"><div><p class="eyebrow">VERIFIED COURSE ACTIVITY</p><h2>Active completed courses</h2></div></div><div id="adminCourses"></div></section><section class="card"><div class="section-head"><div><p class="eyebrow">BATCH RANKING</p><h2>Elite Leaderboard</h2></div></div><div id="adminLeaderboard"></div></section></div></div>
+ <div id="adminTasks" class="admin-section">
+  <div class="report-controls"><div class="segmented" id="taskSeg"><button class="seg-btn active" onclick="taskSection('assign',this)">Assign</button><button class="seg-btn" onclick="taskSection('verify',this)">Verify</button></div></div>
 
- <div id="adminVerify" class="admin-section hidden">
-  <section class="card"><div class="section-head"><div><p class="eyebrow">VERIFICATION CENTER · 01</p><h2>Previous PS completion requests</h2></div><span class="muted">Approve only supported records</span></div><div id="adminVerification"></div></section>
-  <section class="card"><div class="section-head"><div><p class="eyebrow">VERIFICATION CENTER · 02</p><h2>Daily PS reports waiting for review</h2></div><span class="muted">Only verified reports affect official progress</span></div><div id="adminDailyVerification"></div></section>
+  <div id="taskAssign" class="admin-section">
+   <section class="card"><div class="section-head"><div><p class="eyebrow">ASSIGN TASK</p><h2>Create a new task</h2></div><span class="muted">Points awarded after verification</span></div>
+    <div class="two-col"><div><label>Task title</label><input id="taskTitle" placeholder="e.g. Build a portfolio"></div><div><label>Points</label><input id="taskPoints" type="number" min="0" placeholder="e.g. 50"></div></div>
+    <label>Description</label><input id="taskDescription" placeholder="What must the student do?">
+    <div class="two-col"><div><label>Frequency</label><select id="taskFrequency"><option value="daily">Daily</option><option value="weekly" selected>Weekly</option><option value="monthly">Monthly</option><option value="none">-</option></select></div><div><label>Assign to</label><select id="taskTarget" onchange="toggleTaskTarget()"><option value="all">All students</option><option value="student">Specific student</option></select></div></div>
+    <div id="taskStudentWrap" class="hidden"><label>Student</label><select id="taskStudent"></select></div>
+    <div class="two-col"><div><label>Due in (days)</label><select id="taskDays" onchange="setDeadlineFromDays()"><option value="1">1 day</option><option value="2">2 days</option><option value="3">3 days</option><option value="5">5 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></div><div><label>Or pick a deadline (calendar)</label><input id="taskDate" type="date" onchange="setDeadlineFromDate()"></div></div>
+    <button class="primary-btn full" onclick="createTask()">Assign task ↗</button>
+   </section>
+
+   <div class="grid-main-side">
+    <section class="card"><div class="section-head"><div><p class="eyebrow">ONGOING TASKS</p><h2>Assigned tasks</h2></div><span class="muted">Assignment stats</span></div><div id="adminTaskList"></div></section>
+    <section class="card side"><div class="section-head"><div><p class="eyebrow">TOP 5</p><h2>Task points leaders</h2></div></div><div id="adminTaskTop5"></div></section>
+   </div>
+  </div>
+
+  <div id="taskVerify" class="admin-section hidden">
+   <section class="card"><div class="section-head"><div><p class="eyebrow">VERIFY SUBMISSIONS</p><h2>Proof queue</h2></div><span class="muted">FIFO · click a submission to review</span></div><div id="adminTaskSubmissions"></div></section>
+  </div>
  </div>
 
- <div id="adminStudents" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">STUDENT MANAGEMENT</p><h2>All students</h2></div></div><div class="search-row"><input id="studentDirectorySearch" placeholder="Search name, register number, email or department" oninput="loadStudentDirectory()"><button class="primary-btn" onclick="loadStudentDirectory()">Refresh</button></div><div id="studentDirectory"></div></section></div>
+ <div id="adminDaily" class="admin-section hidden">
+  <div id="dailyCards" class="daily-cards"></div>
+  <section class="card"><div class="section-head"><div><p class="eyebrow">DAILY TRACKER</p><h2>Today's activity</h2></div><span class="muted">Auto-finalized at day's end</span></div>
+   <div class="report-controls"><select id="dailySort" onchange="loadAdminDaily()"><option value="points">Sort by points</option><option value="name">Sort by name</option><option value="dept">Sort by department</option></select><button class="primary-btn sm" onclick="exportDaily()">Download Excel ↗</button><button class="ghost-btn sm" onclick="copyDailyWa()">Copy WhatsApp</button><a class="ghost-btn sm" id="dailyWaLink" href="#" target="_blank" rel="noopener">Open WhatsApp ↗</a></div>
+   <div id="dailyTable"></div>
+  </section>
+  <div id="dailyWa" class="whatsapp-box hidden"><textarea id="dailyWaMsg" rows="6" readonly></textarea></div>
+ </div>
+ <div id="adminPS" class="admin-section hidden">
+  <section class="card"><div class="section-head"><div><p class="eyebrow">TODAY'S ALLOTMENT</p><h2>Booked students today</h2></div><span class="muted">Status updates live</span></div><div id="psAllotment"></div></section>
 
+  <section class="card"><div class="section-head"><div><p class="eyebrow">SLOT BOOKING</p><h2>Next day window</h2></div><span class="muted">Auto-opens daily</span></div>
+   <p id="psSlotStatus" class="muted"></p>
+   <div class="two-col"><div><label>Daily open time</label><input id="psSlotOpenTime" type="time" value="18:00"></div><div><label>Target day (tomorrow)</label><span id="psSlotTarget" class="muted"></span></div></div>
+   <div class="row-actions" style="justify-content:flex-start"><button class="primary-btn sm" onclick="psUpdateSlotTime()">Save time ↗</button><button class="ghost-btn sm" onclick="psCancelSlot()">Cancel today's window</button><button class="ghost-btn sm" onclick="psReopenSlot()">Reopen today's window</button></div>
+  </section>
+
+  <section class="card"><div class="section-head"><div><p class="eyebrow">DIDN'T REPORT</p><h2>Previous day unreported slots</h2></div><span class="muted">Blocked until reported</span></div><div id="psUnreported"></div></section>
+
+  <section class="card"><div class="section-head"><div><p class="eyebrow">TOP 5</p><h2>PS portal performers</h2></div><span class="muted">By levels completed</span></div><div id="psTop5"></div></section>
+
+  <section class="card"><div class="section-head"><div><p class="eyebrow">DAILY REGISTER</p><h2>PS report register</h2></div><div class="report-controls"><button class="ghost-btn sm" onclick="psRegStep(-1)">←</button><span id="psRegDate" class="mono muted"></span><button class="ghost-btn sm" onclick="psRegStep(1)">→</button><button class="primary-btn sm" onclick="exportPSRegister()">Download Excel ↗</button></div></div><div id="psRegister"></div></section>
+ </div>
+ <div id="adminReports" class="admin-section hidden">
+  <section class="card"><div class="section-head"><div><p class="eyebrow">TASK POINTS</p><h2>Complete task table</h2></div><span class="muted">Verified submissions only</span></div>
+   <div class="report-controls"><select id="repTaskSort" onchange="loadReportTask()"><option value="rank">Sort by rank (points)</option><option value="alpha">Alphabetic</option><option value="dept">Department order</option></select><select id="repTaskDept" onchange="loadReportTask()"><option value="">All departments</option></select><button class="primary-btn sm" onclick="exportReport('task')">Download Excel ↗</button></div>
+   <div id="reportTask"></div>
+  </section>
+
+  <section class="card"><div class="section-head"><div><p class="eyebrow">PS PROGRESS</p><h2>Complete PS table</h2></div><span class="muted">Levels completed · green = done</span></div>
+   <div class="report-controls"><select id="repPSSort" onchange="loadReportPS()"><option value="rank">Sort by rank (levels)</option><option value="alpha">Alphabetic</option><option value="dept">Department order</option></select><select id="repPSDept" onchange="loadReportPS()"><option value="">All departments</option></select><button class="primary-btn sm" onclick="exportReport('ps')">Download Excel ↗</button></div>
+   <div id="reportPS"></div>
+  </section>
+ </div>
+ <div id="adminSearch" class="admin-section hidden">
+  <section class="card"><div class="section-head"><div><p class="eyebrow">STUDENT LOOKUP</p><h2>Search students</h2></div><span class="muted">Name · register no · department</span></div>
+   <div class="search-row"><input id="adminSearchInput" placeholder="e.g. arjun, 95072513001, or CSE" onkeydown="if(event.key==='Enter')adminSearchGo()"><button class="primary-btn" onclick="adminSearchGo()">Search</button></div>
+   <div id="adminSearchResults" class="empty-state">Type a partial name, register number, or just a department to list its students.</div>
+  </section>
+  <div id="adminSearchDetail"></div>
+ </div>
  <div id="adminSupportSection" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">SUPPORT DESK</p><h2>Student issues</h2></div></div><div id="adminSupport"></div></section></div>
 
- <div id="adminAudit" class="admin-section hidden"><section class="card"><div class="section-head"><div><p class="eyebrow">AUDIT TRAIL</p><h2>Administrative activity</h2></div><span class="muted">Recent 100 actions</span></div><div id="auditLog"></div></section></div>
  <footer class="site-footer">Admin control is restricted to verified operational tasks. Do not share student records outside approved college workflows.</footer>
 </main></section>
 
 <div id="profileModal" class="modal hidden"><div class="modal-panel"><div class="modal-head"><div><p class="eyebrow">STUDENT PROFILE</p><h2 id="profileName">Student</h2></div><button class="icon-btn" onclick="closeProfile()">×</button></div><div id="profileStats" class="profile-stats"></div>
  <div class="profile-details"><div><span>Register No</span><b id="profileRegister">—</b></div><div><span>Student Name</span><b id="profileStudentName">—</b></div><div><span>Program</span><b id="profileProgram">—</b></div><div><span>Department</span><b id="profileDepartment">—</b></div><div><span>Year</span><b id="profileYear">—</b></div><div><span>Batch</span><b id="profileBatch">—</b></div><div><span>Mobile</span><b id="profileMobile">—</b></div><div><span>Email</span><b id="profileEmail">—</b></div></div>
  <div class="profile-section"><p class="eyebrow">ELITE PLANNER DATA</p><div id="profilePlanner"></div></div><div class="profile-section"><p class="eyebrow">PS PORTAL DATA</p><div id="profilePS"></div></div>
+ </div></div>
+
+<div id="taskModal" class="modal hidden"><div class="modal-panel"><div class="modal-head"><div><p class="eyebrow">SUBMIT PROOF</p><h2 id="taskModalTitle">Task</h2></div><button class="icon-btn" onclick="closeTaskModal()">×</button></div>
+ <p id="taskModalDesc" class="muted"></p><div class="profile-details"><div><span>Points</span><b id="taskModalPoints">—</b></div><div><span>Due</span><b id="taskModalDue">—</b></div></div>
+ <div class="form-stack"><label>Proof file (pdf / image)</label><input id="taskProofFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp"><label>Completion note</label><textarea id="taskProofNote" rows="3" placeholder="Briefly describe what you completed"></textarea></div>
+ <div class="modal-actions"><button class="primary-btn full" onclick="submitTaskProof()">Submit proof ↗</button></div>
+ </div></div>
+<div id="psLbModal" class="modal hidden"><div class="modal-panel modal-lg"><div class="modal-head"><div><p class="eyebrow">PS PROGRESS · FULL LEADERBOARD</p><h2>Batch leaderboard</h2></div><button class="icon-btn" onclick="closePSLbModal()">×</button></div>
+ <div id="psLbModalBody" class="modal-body-scroll"></div>
  </div></div>
 <script src="{{ url_for('static',filename='app.js') }}"></script>
 </body></html>
